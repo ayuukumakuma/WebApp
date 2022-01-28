@@ -1,0 +1,37 @@
+version: "3"
+
+services:
+  db:
+    image: mysql:5.7
+    env_file:
+      - ./server/environments/db.env
+    restart: always
+    volumes:
+      - db-data:/var/lib/mysql:cached
+
+  server:
+    build: server/
+    command: /bin/sh -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    env_file:
+      - ./server/environments/db.env
+    volumes:
+      - ./server:/app:cached
+    depends_on:
+      - db
+    ports:
+      - 3000:3000
+
+  client:
+    build: client/
+    command: yarn run dev
+    volumes:
+      - ./client:/app:cached
+    ports:
+      - 8080:3000
+    depends_on:
+      - server
+volumes:
+  public-data:
+  tmp-data:
+  log-data:
+  db-data:
